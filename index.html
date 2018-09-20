@@ -226,35 +226,39 @@
         // const clientHeight = this.visibleLength * this.trHeight || 0;
 
         // console.group();
-        // console.dir(`scrollTop:  ${scrollTop}`);
-        // console.dir(this.scrollThresholdBottom);
-        // console.dir(clientHeight,viewClientHeight);
+        // console.log(`scrollTop: `, scrollTop);
+        // console.log(this.scrollThresholdUp);
+        // console.log(clientHeight,viewClientHeight);
         // console.dir(this.$refs['v_right_table2']);
-        // console.dir(this.rightTable2Top);
-        // console.log(`result: ${clientHeight + this.rightTable2Top - this.scrollThresholdBottom}`);
+        // console.log(this.rightTable2Top);
+        // console.log(`up result: ${this.rightTable2Top + this.scrollThresholdUp}`);
+        // console.log(`bottom result: ${clientHeight + this.rightTable2Top - ( scrollTop + viewClientHeight ) < this.scrollThresholdBottom}`);
         
         // 向上滑动，向下只加载scrollThresholdBottom高度的数据，剩下更多空间加载向上的数据
-        if (scrollTop < this.rightTable2Top + this.scrollThresholdBottom && this.start > 0) {
+        if (scrollTop < this.rightTable2Top + this.scrollThresholdUp && this.start > 0) {
           // console.log('up!!!!!!');
-          const top = scrollTop + viewClientHeight + this.scrollThresholdBottom - clientHeight
+          // const top = scrollTop + viewClientHeight + this.scrollThresholdBottom - clientHeight;
+          const top = scrollTop + viewClientHeight / 2 - clientHeight / 2;
           this.rightTable2Top = top > 0 ? top : 0;
           this.start = Math.floor(this.rightTable2Top / this.trHeight);
-          if (this.start === 0) {
-            this.rightTable2Top = 0;
-          }
+
           // console.log(this.start,this.end,this.rightTable2Top);
-          this.rightTable2Top = this.rightTable2Top - (this.rightTable2Top - this.start * this.trHeight) || 0;
+
+          this.rightTable2Top = this.start * this.trHeight || 0;
           this.visiableList = this.list.slice(this.start, this.end);
           this.$refs['v_right_table2'].style.transform = `translate3d(0, ${this.rightTable2Top}px, 0)`;
         }
-
         // 向下滑动，向上只加载scrollThresholdUp高度的数据
-        if (clientHeight + this.rightTable2Top - this.scrollThresholdBottom - viewClientHeight < scrollTop && this.end < this.list.length) {
-          // console.log('scroll!!!!!!');
-          this.rightTable2Top = scrollTop - this.scrollThresholdUp > 0 ? scrollTop - this.scrollThresholdUp : 0;
+        else if (clientHeight + this.rightTable2Top - ( scrollTop + viewClientHeight ) < this.scrollThresholdBottom && this.end < this.list.length) {
+          // console.log('bottom!!!!!!');
+          // const top2 = scrollTop - this.scrollThresholdUp;
+          const top2 = scrollTop + viewClientHeight / 2 - clientHeight / 2;
+          this.rightTable2Top = top2 > 0 ? top2 : 0;
           this.start = Math.floor(this.rightTable2Top / this.trHeight);
+
           // console.log(this.start,this.end,this.rightTable2Top);
-          this.rightTable2Top = this.rightTable2Top - (this.rightTable2Top - this.start * this.trHeight) || 0;
+          
+          this.rightTable2Top = this.start * this.trHeight || 0;
           this.visiableList = this.list.slice(this.start, this.end);
           this.$refs['v_right_table2'].style.transform = `translate3d(0, ${this.rightTable2Top}px, 0)`;
         }        
