@@ -215,7 +215,8 @@
       },
       changeVisiable () {
         // const target = arguments[0].target
-        const viewClientHeight = this.viewClientHeight || 0;
+        // const viewClientHeight = this.viewClientHeight || 0;
+        const viewClientHeight = this.$refs['v_right_div2'].clientHeight || 0;
         // if (!target || !viewClientHeight) {
         //   return;
         // }
@@ -242,6 +243,7 @@
             this.rightTable2Top = 0;
           }
           // console.log(this.start,this.end,this.rightTable2Top);
+          this.rightTable2Top = this.rightTable2Top - (this.rightTable2Top - this.start * this.trHeight) || 0;
           this.visiableList = this.list.slice(this.start, this.end);
           this.$refs['v_right_table2'].style.transform = `translate3d(0, ${this.rightTable2Top}px, 0)`;
         }
@@ -252,6 +254,7 @@
           this.rightTable2Top = scrollTop - this.scrollThresholdUp > 0 ? scrollTop - this.scrollThresholdUp : 0;
           this.start = Math.floor(this.rightTable2Top / this.trHeight);
           // console.log(this.start,this.end,this.rightTable2Top);
+          this.rightTable2Top = this.rightTable2Top - (this.rightTable2Top - this.start * this.trHeight) || 0;
           this.visiableList = this.list.slice(this.start, this.end);
           this.$refs['v_right_table2'].style.transform = `translate3d(0, ${this.rightTable2Top}px, 0)`;
         }        
