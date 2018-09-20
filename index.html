@@ -197,10 +197,10 @@
     },
     computed: {
       scrollThresholdUp: function () {
-        return this.visibleLength / 4 * this.trHeight;
+        return (this.visibleLength / 6 || 1) * this.trHeight;
       },
       scrollThresholdBottom: function () {
-        return this.visibleLength / 4 * this.trHeight;
+        return (this.visibleLength / 6 || 1) * this.trHeight;
       },
       placeholderHeight: function () {
         return this.list.length * this.trHeight + 'px';
@@ -268,7 +268,7 @@
       }
     },
     mounted: function () {
-      this.visibleLength = Math.ceil((this.$el.clientHeight - this.trHeight) / this.trHeight)*4; // 固定顶部表头高度40px,每行高度40px
+      this.visibleLength = Math.ceil((this.$el.clientHeight - this.trHeight) / this.trHeight) * 3; // 固定顶部表头高度40px,每行高度40px
       this.visiableList = this.list.slice(this.start, this.end);
       this.viewClientHeight = this.$refs['v_right_div2'].clientHeight;
       setRightWidth();
