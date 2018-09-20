@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="app">
+  </div>
+</body>
+
+</html>
+
+<style>
+  html {
+    height: 100%;
+  }
+
+  body {
+    text-align: center;
+    margin: 0;
+    height: 100%;
+  }
+
+  table {
+    border-spacing: 0;
+    border-collapse: collapse;
+  }
+
+  td,
+  th {
+    padding: 8px;
+    border: 1px solid #ddd;
+  }
+
+  tr {
+    height: 40px;
+  }
+
+  .container {
+    display: flex;
+    height: 100%;
+  }
+
+
+  #left_div {
+    flex: none;
+    min-width: 80px;
+  }
+
+  #left_div1 {
+    width: 100%;
+    z-index: 10;
+  }
+
+  #left_div2 {
+    width: 100%;
+    height: calc(100% - 40px);
+    overflow: hidden;
+  }
+
+  #left_table1 {
+    background: #E9F8FF;
+    width: 100%;
+  }
+
+  #right_div1 {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  #right_divx {
+    width: 900px;
+  }
+
+  #right_div2 {
+    width: 100%;
+    height: calc(100% - 40px);
+    position: relative;
+    overflow: auto;
+  }
+
+  #left_table2 {
+    width: 100%;
+  }
+
+  #right_table1 {
+    width: 880px;
+  }
+
+  #right_table2 {
+    width: 880px;
+    max-width: 880px;
+    white-space: nowrap;
+  }
+
+  #right_table1 th {
+    background: #E9F8FF;
+    text-align: center;
+    width: 10%;
+  }
+
+  #right_table2 td {
+    width: 10%;
+    text-align: center;
+  }
+
+  .placeholder {
+    position: absolute;
+    width: 100%;
+  }
+</style>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.min.js"></script>
+
+<script>
+
+  function setRightWidth() {
+    //设置右边div宽度
+    const dom_right_div = document.querySelector("#right_div");
+    const dom_left_div = document.querySelector("#left_div");
+    dom_right_div.style.width = "" + document.documentElement.clientWidth - left_div.clientWidth + "px";
+  }
+
+  let vm = new Vue({
+    el: '#app',
+    template: `
+    <div class="container" >
+      <div id="left_div">
+        <div id="left_div1">
+          <table id="left_table1">
+            <tr>
+              <th>&nbsp;</th>
+            </tr>
+          </table>
+        </div>
+        <div id="left_div2">
+          <table id="left_table2" ref="v_left_table2">
+            <tr v-for="(item,index) in visiableList" v-if="visiableList.length > 0">
+              <th>{{index+start}}行</th>
+            </tr>
+          </table>
+        </div>
+      </div>
+      <div id="right_div">
+        <div id="right_div1" >
+          <div id="right_divx">
+            <table id="right_table1" ref="v_right_table1">
+              <tr>
+                <th>A</th>
+                <th>B</th>
+                <th>C</th>
+                <th>D</th>
+                <th>E</th>
+                <th>F</th>
+                <th>G</th>
+                <th>H</th>
+                <th>I</th>
+                <th>J</th>
+              </tr>
+            </table>
+          </div>
+        </div>
+        <div id="right_div2" @scroll="changeVisiable" ref="v_right_div2">
+          <div class="placeholder"
+            :style="{
+              height: placeholderHeight
+            }"
+          ></div>
+          <table id="right_table2" ref="v_right_table2">
+            <tr v-for="(item,index) in visiableList" v-if="visiableList.length > 0">
+              <td v-for="(item2,index2) in 10">{{index+start}}</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+    </div>`,
+    data: {
+      list: new Array(10000),
+      start: 0,
+      visibleLength: 30,
+      visiableList: [],
+      trHeight: 40,
+      rightTable2Top: 0,
+      viewClientHeight: 0,
+    },
+    computed: {
+      scrollThresholdUp: function () {
+        return this.visibleLength / 4 * this.trHeight;
+      },
+      scrollThresholdBottom: function () {
+        return this.visibleLength / 4 * this.trHeight;
+      },
+      placeholderHeight: function () {
+        return this.list.length * this.trHeight + 'px';
+      },
+      end: function () {
+        return this.start + this.visibleLength;
+      }
+    },
+    methods:{
+      changeVisiable () {
+        const target = arguments[0].target
+        const viewClientHeight = this.viewClientHeight || 0;
+        if (!target || !viewClientHeight) {
+          return;
+        }
+        const scrollTop = this.$refs['v_right_div2'].scrollTop || 0;
+        const scrollLeft = this.$refs['v_right_div2'].scrollLeft || 0;
+        const clientHeight = this.$refs['v_right_table2'].clientHeight || 0;
+
+        // console.group();
+        // console.dir(`scrollTop:  ${scrollTop}`);
+        // console.dir(this.scrollThresholdBottom);
+        // console.dir(clientHeight,viewClientHeight);
+        // console.dir(this.$refs['v_right_table2']);
+        // console.dir(this.rightTable2Top);
+        // console.log(`result: ${clientHeight + this.rightTable2Top - this.scrollThresholdBottom}`);
+        
+        // 向上滑动，向下只加载scrollThresholdBottom高度的数据，剩下更多空间加载向上的数据
+        if (scrollTop < this.rightTable2Top + this.scrollThresholdBottom && this.start > 0) {
+          // console.log('up!!!!!!');
+          const top = scrollTop + viewClientHeight + this.scrollThresholdBottom - clientHeight
+          this.rightTable2Top = top > 0 ? top : 0;
+          this.start = Math.floor(this.rightTable2Top / this.trHeight);
+          if (this.start === 0) {
+            this.rightTable2Top = 0;
+          }
+          // console.log(this.start,this.end,this.rightTable2Top);
+          this.visiableList = this.list.slice(this.start, this.end);
+          this.$refs['v_right_table2'].style.transform = `translate3d(0, ${this.rightTable2Top}px, 0)`;
+        }
+
+        // 向下滑动，向上只加载scrollThresholdUp高度的数据
+        if (clientHeight + this.rightTable2Top - this.scrollThresholdBottom - viewClientHeight < scrollTop && this.end < this.list.length) {
+          // console.log('scroll!!!!!!');
+          this.rightTable2Top = scrollTop - this.scrollThresholdUp > 0 ? scrollTop - this.scrollThresholdUp : 0;
+          this.start = Math.floor(this.rightTable2Top / this.trHeight);
+          // console.log(this.start,this.end,this.rightTable2Top);
+          this.visiableList = this.list.slice(this.start, this.end);
+          this.$refs['v_right_table2'].style.transform = `translate3d(0, ${this.rightTable2Top}px, 0)`;
+        }        
+        // console.groupEnd();
+        this.$refs['v_left_table2'].style.transform = `translate3d(0, ${this.rightTable2Top - scrollTop}px, 0)`;
+        this.$refs['v_right_table1'].style.transform = `translate3d(${0 - scrollLeft}px, 0, 0)`;
+      }
+    },
+    mounted: function () {
+      this.visibleLength = Math.ceil((this.$el.clientHeight - this.trHeight) / this.trHeight)*3; // 固定顶部表头高度40px,每行高度40px
+      this.visiableList = this.list.slice(this.start, this.end);
+      this.viewClientHeight = this.$refs['v_right_div2'].clientHeight;
+      setRightWidth();
+    }
+  })
+</script>
