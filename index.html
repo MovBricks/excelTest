@@ -166,7 +166,7 @@
             </table>
           </div>
         </div>
-        <div id="right_div2" @scroll="changeVisiable" ref="v_right_div2">
+        <div id="right_div2" @scroll="handlerScroll" ref="v_right_div2">
           <div class="placeholder"
             :style="{
               height: placeholderHeight
@@ -188,6 +188,7 @@
       trHeight: 40,
       rightTable2Top: 0,
       viewClientHeight: 0,
+      didScroll: false
     },
     computed: {
       scrollThresholdUp: function () {
@@ -204,12 +205,15 @@
       }
     },
     methods:{
+      handlerScroll () {
+        this.didScroll = true;
+      },
       changeVisiable () {
-        const target = arguments[0].target
+        // const target = arguments[0].target
         const viewClientHeight = this.viewClientHeight || 0;
-        if (!target || !viewClientHeight) {
-          return;
-        }
+        // if (!target || !viewClientHeight) {
+        //   return;
+        // }
         const scrollTop = this.$refs['v_right_div2'].scrollTop || 0;
         const scrollLeft = this.$refs['v_right_div2'].scrollLeft || 0;
         const clientHeight = this.$refs['v_right_table2'].clientHeight || 0;
@@ -255,6 +259,19 @@
       this.visiableList = this.list.slice(this.start, this.end);
       this.viewClientHeight = this.$refs['v_right_div2'].clientHeight;
       setRightWidth();
+      window.onresize = function() {
+        setRightWidth();
+      }
+      
+      let self = this;
+      function handlerFrame() {
+        if (self.didScroll ) {
+          self.didScroll = false;
+          self.changeVisiable();
+        }
+        requestAnimationFrame(handlerFrame);
+      }
+      requestAnimationFrame(handlerFrame);     
     }
   })
 </script>
