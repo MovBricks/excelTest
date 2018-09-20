@@ -261,7 +261,7 @@
       }
     },
     mounted: function () {
-      this.visibleLength = Math.ceil((this.$el.clientHeight - this.trHeight) / this.trHeight)*3; // 固定顶部表头高度40px,每行高度40px
+      this.visibleLength = Math.ceil((this.$el.clientHeight - this.trHeight) / this.trHeight)*2; // 固定顶部表头高度40px,每行高度40px
       this.visiableList = this.list.slice(this.start, this.end);
       this.viewClientHeight = this.$refs['v_right_div2'].clientHeight;
       setRightWidth();
