@@ -13,6 +13,23 @@
   </div>
 </body>
 
+<!-- <div id="left_div">
+  <div id="left_div1">
+    <table id="left_table1">
+      <tr>
+        <th>&nbsp;</th>
+      </tr>
+    </table>
+  </div>
+  <div id="left_div2">
+    <table id="left_table2" ref="v_left_table2">
+      <tr v-for="(item,index) in visiableList" v-if="visiableList.length > 0">
+        <th>{{index+start}}行</th>
+      </tr>
+    </table>
+  </div>
+</div> -->
+
 </html>
 
 <style>
@@ -68,6 +85,10 @@
     background: #E9F8FF;
     width: 100%;
   }
+  
+  #right_div {
+    width: 100%;
+  }
 
   #right_div1 {
     width: 100%;
@@ -75,7 +96,7 @@
   }
 
   #right_divx {
-    width: 900px;
+    /* width: 900px; */
   }
 
   #right_div2 {
@@ -116,47 +137,62 @@
 
   .placeholder {
     position: absolute;
-    width: 100%;
+    left: 0;
+    top: 0;
+    width: 880px;
+    max-width: 880px;
   }
+  .crossBlock {
+    position: absolute;
+    height: 40px;
+    width: 88px;
+    left: 1px;
+    top: 1px;
+    background: #E9F8FF;
+    z-index: 5;
+    border-bottom: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    box-sizing: border-box;
+  }
+  .rowHeadDiv {
+    width: 100%;
+    height: 100%;
+    background: wheat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ddd;
+    border-left: none;
+    border-top: none;
+    position: relative;
+  }
+  * { touch-action: none; } 
 </style>
 
 <!-- <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.js"></script> -->
 <script src="https://cdn.jsdelivr.net/npm/vue@2.5.17/dist/vue.min.js"></script>
+<script src="https://cdn.bootcss.com/iScroll/5.2.0/iscroll-probe.min.js"></script>
 
 <script>
 
   function setRightWidth() {
     //设置右边div宽度
-    const dom_right_div = document.querySelector("#right_div");
-    const dom_left_div = document.querySelector("#left_div");
-    dom_right_div.style.width = "" + document.documentElement.clientWidth - left_div.clientWidth + "px";
+    // const dom_right_div = document.querySelector("#right_div");
+    // const dom_left_div = document.querySelector("#left_div");
+    // dom_right_div.style.width = "" + document.documentElement.clientWidth - left_div.clientWidth + "px";
   }
 
   let vm = new Vue({
     el: '#app',
     template: `
     <div class="container" >
-      <div id="left_div">
-        <div id="left_div1">
-          <table id="left_table1">
-            <tr>
-              <th>&nbsp;</th>
-            </tr>
-          </table>
-        </div>
-        <div id="left_div2">
-          <table id="left_table2" ref="v_left_table2">
-            <tr v-for="(item,index) in visiableList" v-if="visiableList.length > 0">
-              <th>{{index+start}}行</th>
-            </tr>
-          </table>
-        </div>
-      </div>
       <div id="right_div">
         <div id="right_div1" >
           <div id="right_divx">
+            <div class="crossBlock">&nbsp;</div>
             <table id="right_table1" ref="v_right_table1">
               <tr>
+                <th>&nbsp;</th>
                 <th>A</th>
                 <th>B</th>
                 <th>C</th>
@@ -166,12 +202,11 @@
                 <th>G</th>
                 <th>H</th>
                 <th>I</th>
-                <th>J</th>
               </tr>
             </table>
           </div>
         </div>
-        <div id="right_div2" @scroll="handlerScroll" ref="v_right_div2">
+        <div id="right_div2" ref="v_right_div2">
           <div class="placeholder"
             :style="{
               height: placeholderHeight
@@ -179,7 +214,12 @@
           ></div>
           <table id="right_table2" ref="v_right_table2">
             <tr v-for="(item,index) in visiableList" v-if="visiableList.length > 0">
-              <td v-for="(item2,index2) in 10">{{index+start}}</td>
+              <td
+                style="padding:0"
+              ><div 
+              :style="styleObject"
+              class="rowHeadDiv">{{index+start}}行</div></td>
+              <td v-for="(item2,index2) in 9">{{index+start}}</td>
             </tr>
           </table>
         </div>
@@ -192,10 +232,20 @@
       visiableList: [],
       trHeight: 40,
       rightTable2Top: 0,
+      rightTable2ScrollTop: 0,
       viewClientHeight: 0,
-      didScroll: false
+      didScroll: false,
+      rowX: 0,
+      scroll: null
     },
     computed: {
+      styleObject: function () {
+        return {
+          transform: `translate3d(${this.rowX}px, 0, 0)`,
+          padding: `0`,
+          height: `${this.trHeight}px`
+        }
+      },
       scrollThresholdUp: function () {
         return (this.visibleLength / 6 || 1) * this.trHeight;
       },
@@ -213,15 +263,15 @@
       handlerScroll () {
         this.didScroll = true;
       },
-      changeVisiable () {
+      changeVisiable (x, y) {
         // const target = arguments[0].target
-        // const viewClientHeight = this.viewClientHeight || 0;
-        const viewClientHeight = this.$refs['v_right_div2'].clientHeight || 0;
+        const viewClientHeight = this.viewClientHeight || 0;
+        // const viewClientHeight = this.$refs['v_right_div2'].clientHeight || 0;
         // if (!target || !viewClientHeight) {
         //   return;
         // }
-        const scrollTop = this.$refs['v_right_div2'].scrollTop || 0;
-        const scrollLeft = this.$refs['v_right_div2'].scrollLeft || 0;
+        const scrollTop = y || this.$refs['v_right_div2'].scrollTop || 0;
+        const scrollLeft = x || this.$refs['v_right_div2'].scrollLeft || 0;
         const clientHeight = this.$refs['v_right_table2'].clientHeight || 0;
         // const clientHeight = this.visibleLength * this.trHeight || 0;
 
@@ -236,35 +286,33 @@
         
         // 向上滑动，向下只加载scrollThresholdBottom高度的数据，剩下更多空间加载向上的数据
         if (scrollTop < this.rightTable2Top + this.scrollThresholdUp && this.start > 0) {
-          // console.log('up!!!!!!');
-          // const top = scrollTop + viewClientHeight + this.scrollThresholdBottom - clientHeight;
-          const top = scrollTop + viewClientHeight / 2 - clientHeight / 2;
-          this.rightTable2Top = top > 0 ? top : 0;
-          this.start = Math.floor(this.rightTable2Top / this.trHeight);
-
-          // console.log(this.start,this.end,this.rightTable2Top);
-
-          this.rightTable2Top = this.start * this.trHeight || 0;
+          // console.log('up!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+          // let top = scrollTop + viewClientHeight + this.scrollThresholdBottom - clientHeight;
+          let top = scrollTop + viewClientHeight / 2 - clientHeight / 2;
+          top = top > 0 ? top : 0;
+          this.start = Math.floor(top / this.trHeight);
           this.visiableList = this.list.slice(this.start, this.end);
-          this.$refs['v_right_table2'].style.transform = `translate3d(0, ${this.rightTable2Top}px, 0)`;
+          this.rightTable2Top = this.start * this.trHeight || 0;
+          // console.log(this.start,this.end,this.rightTable2Top);
+          // this.$refs['v_right_table2'].style.transform = `translate3d(0, ${this.rightTable2Top}px, 0)`;
         }
         // 向下滑动，向上只加载scrollThresholdUp高度的数据
         else if (clientHeight + this.rightTable2Top - ( scrollTop + viewClientHeight ) < this.scrollThresholdBottom && this.end < this.list.length) {
-          // console.log('bottom!!!!!!');
-          // const top2 = scrollTop - this.scrollThresholdUp;
-          const top2 = scrollTop + viewClientHeight / 2 - clientHeight / 2;
-          this.rightTable2Top = top2 > 0 ? top2 : 0;
-          this.start = Math.floor(this.rightTable2Top / this.trHeight);
-
-          // console.log(this.start,this.end,this.rightTable2Top);
-          
-          this.rightTable2Top = this.start * this.trHeight || 0;
+          // console.log('bottom!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+          // let top2 = scrollTop - this.scrollThresholdUp;
+          let top2 = scrollTop + viewClientHeight / 2 - clientHeight / 2;
+          top2 = top2 > 0 ? top2 : 0;
+          this.start = Math.floor(top2 / this.trHeight);   
           this.visiableList = this.list.slice(this.start, this.end);
-          this.$refs['v_right_table2'].style.transform = `translate3d(0, ${this.rightTable2Top}px, 0)`;
+          this.rightTable2Top = this.start * this.trHeight || 0;
+          // console.log(this.start,this.end,this.rightTable2Top);
+          // this.$refs['v_right_table2'].style.transform = `translate3d(0, ${this.rightTable2Top}px, 0)`;
         }        
         // console.groupEnd();
-        this.$refs['v_left_table2'].style.transform = `translate3d(0, ${this.rightTable2Top - scrollTop}px, 0)`;
-        this.$refs['v_right_table1'].style.transform = `translate3d(${0 - scrollLeft}px, 0, 0)`;
+        // this.$refs['v_left_table2'].style.transform = `translate3d(0, ${this.rightTable2Top - scrollTop}px, 0)`;
+        this.$refs['v_right_table2'].style.transform = `translate3d(${-scrollLeft}px, ${this.rightTable2Top - scrollTop}px, 0)`;
+        this.rowX = scrollLeft; // 左侧首列
+        this.$refs['v_right_table1'].style.transform = `translate3d(${0 - scrollLeft}px, 0, 0)`; // 顶部表头
       }
     },
     mounted: function () {
@@ -274,17 +322,40 @@
       setRightWidth();
       window.onresize = function() {
         setRightWidth();
+        this.viewClientHeight = this.$refs['v_right_div2'].clientHeight;
       }
-      
-      let self = this;
-      function handlerFrame() {
-        if (self.didScroll) {
-          self.didScroll = false;
-          self.changeVisiable();
-        }
-        requestAnimationFrame(handlerFrame);
-      }
-      requestAnimationFrame(handlerFrame);     
+
+      this.$nextTick(() => {
+        this.scroll = new IScroll('#right_div2',{
+          scrollX: true,
+          scrollY: true,
+          // freeScroll: true,
+          bounce:false,
+          probeType:3,
+          preventDefault: !0,
+          mouseWheel: !1,
+          disableMouse: !0,
+          disablePointer: !0,
+          lockDirection: !0,
+          disableTouch: !1,
+          useTransition: !0
+        });
+        this.scroll.on('scroll', ()=>{
+          // console.log('scroll');
+          // console.log(-this.scroll.x, -this.scroll.y);
+          this.changeVisiable(-this.scroll.x, -this.scroll.y);
+        });
+      });
+
+      // let self = this;
+      // function handlerFrame() {
+      //   if (self.didScroll) {
+      //     self.didScroll = false;
+      //     self.changeVisiable();
+      //   }
+      //   requestAnimationFrame(handlerFrame);
+      // }
+      // requestAnimationFrame(handlerFrame);     
     }
   })
 </script>
